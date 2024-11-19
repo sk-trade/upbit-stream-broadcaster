@@ -8,6 +8,8 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "==3.10.*"
 pytz = "^2024.2"
+aiohttp = "^3.11.4"
+websockets = "^14.1"
 
 [tool.poetry.group.dev.dependencies]
 pyzmq = "^26.2.0"
