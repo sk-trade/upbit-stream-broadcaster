@@ -63,5 +63,7 @@ async def rank_changes(new_tickers: List[Dict[str, int]], previous_tickers: Opti
         rank_msg += (f"{market} Top 에서 제거됨\n")
 
     if rank_msg:
+        rank_msg += "\n전체 순위:\n"
+        rank_msg += "\n".join([f"{ticker['rank']}: {ticker['market']}" for ticker in new_tickers])
         logging.info(rank_msg)
         await mattermost_send_message(rank_msg)
