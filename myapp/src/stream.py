@@ -95,7 +95,7 @@ class UpbitTradeWebSocket:
         
         while self.is_running:
             try:
-                if not self.active_connection or self.active_connection.closed:
+                if not self.active_connection or self.active_connection.state != websockets.protocol.State.OPEN:
                     if not self.is_switching:  # 스위칭 중이 아닐 때만 재연결
                         await self.reconnect()
                     continue
@@ -137,7 +137,7 @@ class UpbitTradeWebSocket:
                 await new_connection.send(subscription_message)
 
                 # 새 연결이 정상적인지 확인
-                if new_connection.closed:
+                if new_connection.state != websockets.protocol.State.OPEN:
                     logging.error("새 WebSocket 연결이 안정적이지 않습니다.")
                     await new_connection.close()
                     return
@@ -151,7 +151,7 @@ class UpbitTradeWebSocket:
                 self.processed_ids.clear()
 
                 # 이전 연결이 있으면 안전하게 종료
-                if old_connection and not old_connection.closed: 
+                if old_connection and old_connection.state == websockets.protocol.State.OPEN:
                     try:
                         await old_connection.close()
                         logging.info("기존 WebSocket 연결 종료")
@@ -160,7 +160,7 @@ class UpbitTradeWebSocket:
 
             except Exception as e:
                 logging.error(f"구독 업데이트 실패: {e}")
-                if not self.active_connection or self.active_connection.closed:
+                if not self.active_connection or self.active_connection.state != websockets.protocol.State.OPEN:
                     await self.reconnect()
             finally:
                 self.is_switching = False
