@@ -160,7 +160,7 @@ class UpbitTradeWebSocket:
 
             except Exception as e:
                 logging.error(f"구독 업데이트 실패: {e}")
-                if not self.active_connection or not self.active_connection.open:
+                if not self.active_connection or self.active_connection.state != "OPEN":
                     await self.reconnect()
             finally:
                 self.is_switching = False
