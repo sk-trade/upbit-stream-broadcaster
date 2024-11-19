@@ -1,0 +1,21 @@
+services:
+  upbit-stream-broadcaster:
+      build: 
+        context: .
+        args:
+          VERSION: ${VERSION}
+        tags:
+          - "upbit-stream-broadcaster:${VERSION}"
+      image: upbit-stream-broadcaster:${VERSION}
+      container_name: upbit-stream-broadcaster
+      restart: unless-stopped
+      networks:
+        - bridge_server
+      env_file:
+        - .env
+      ports:
+        - "${ZMQ_PORT}:11555"
+
+networks:
+  bridge_server:
+    external: true

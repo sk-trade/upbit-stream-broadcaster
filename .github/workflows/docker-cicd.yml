@@ -1,0 +1,103 @@
+name: Docker Image CICD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Extract version from pyproject.toml
+      id: get_version
+      run: echo "VERSION=$(grep '^version =' pyproject.toml | sed -E 's/version = \"(.*)\"/\1/')" >> $GITHUB_OUTPUT
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Build Docker image
+      run: docker build -t myapp:${{ steps.get_version.outputs.VERSION }} -f Dockerfile .
+
+    - name: Run Docker container
+      run: docker run -d -p 5555:5555 --name myapp-container myapp:${{ steps.get_version.outputs.VERSION }}
+
+    - name: Show Docker logs on Test failure
+      if: failure()
+      run: |
+          echo "=== Docker Container Status ==="
+          docker ps -a
+          echo "=== Docker Container Logs ==="
+          docker logs myapp-container
+
+          docker stop myapp-container
+          docker rm myapp-container
+
+    - name: action-slack
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        author_name: Gibhub Actions - build
+        fields: repo,commit,message,author # action,eventName,ref,workflow,job,took 추가할 수 있음
+        mention: here
+        if_mention: failure,cancelled
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_ALARM }} # required
+      if: always() # Pick up events even if the job fails or is canceled.
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Deploy to Ubuntu server
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USERNAME }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          REPO_FULL_NAME="${{ github.repository }}"  # owner/reponame 형식
+          REPO_NAME=$(echo $REPO_FULL_NAME | cut -d'/' -f2) 
+
+          cd ~/docker/
+          mkdir -p $REPO_NAME
+          cd $REPO_NAME
+
+          if [ ! -d ".git" ]; then
+            git clone ${{ github.server_url }}/${{ github.repository }}.git .
+          else
+            git pull origin ${{ github.ref_name }}
+          fi
+
+          echo "LOG_LEVEL=${{ vars.LOG_LEVEL }}" > .env
+          echo "VERSION=${{ needs.build.outputs.version }}" >> .env
+          echo "ZMQ_PORT=${{ vars.ZMQ_PORT }}" >> .env
+          echo "TOP_TICKERS=${{ vars.TOP_TICKERS }}" >> .env
+          echo "MINUTE_INTERVAL=${{ vars.MINUTE_INTERVAL }}" >> .env
+          echo "MATTERMOST_URL=${{ secrets.MATTERMOST_URL }}" >> .env
+          docker compose down --rmi all
+          docker compose build --no-cache
+          docker compose up -d
+
+    - name: action-slack
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        author_name: Gibhub Actions - deploy
+        fields: repo,commit,message,author # action,eventName,ref,workflow,job,took 추가할 수 있음
+        mention: here
+        if_mention: failure,cancelled
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_ALARM }} # required
+      if: always() # Pick up events even if the job fails or is canceled.
