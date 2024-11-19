@@ -41,17 +41,7 @@ jobs:
           docker stop myapp-container
           docker rm myapp-container
 
-    - name: action-slack
-      uses: 8398a7/action-slack@v3
-      with:
-        status: ${{ job.status }}
-        author_name: Gibhub Actions - build
-        fields: repo,commit,message,author # action,eventName,ref,workflow,job,took 추가할 수 있음
-        mention: here
-        if_mention: failure,cancelled
-      env:
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_ALARM }} # required
-      if: always() # Pick up events even if the job fails or is canceled.
+ 
 
   deploy:
     needs: build
@@ -89,15 +79,3 @@ jobs:
           docker compose down --rmi all
           docker compose build --no-cache
           docker compose up -d
-
-    - name: action-slack
-      uses: 8398a7/action-slack@v3
-      with:
-        status: ${{ job.status }}
-        author_name: Gibhub Actions - deploy
-        fields: repo,commit,message,author # action,eventName,ref,workflow,job,took 추가할 수 있음
-        mention: here
-        if_mention: failure,cancelled
-      env:
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_ALARM }} # required
-      if: always() # Pick up events even if the job fails or is canceled.
