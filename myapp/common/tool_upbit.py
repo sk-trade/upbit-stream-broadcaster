@@ -3,7 +3,7 @@ import logging
 import asyncio
 import aiohttp
 
-from myapp.common.tool_msg import mattermost_send_message
+from myapp.common.tool_msg import send_webhook_message
 
 async def get_top_tickers(TOP_TICKERS, max_retries=5, delay=10) -> List[Dict[str, int]]:
     """비동기로 거래량 상위 30개 종목 가져오기 (재시도 포함)"""
@@ -66,4 +66,4 @@ async def rank_changes(new_tickers: List[Dict[str, int]], previous_tickers: Opti
         rank_msg += "\n전체 순위:\n"
         rank_msg += "\n".join([f"{ticker['rank']}: {ticker['market']}" for ticker in new_tickers])
         logging.info(rank_msg)
-        await mattermost_send_message(rank_msg)
+        await send_webhook_message(rank_msg)

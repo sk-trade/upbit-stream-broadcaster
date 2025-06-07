@@ -7,7 +7,7 @@ import zmq.asyncio
 import myapp.common.tool_util as tool_util
 import myapp.common.tool_upbit as tool_upbit
 from myapp.src.stream import UpbitTradeWebSocket
-from myapp.common.tool_msg import mattermost_send_message
+from myapp.common.tool_msg import send_webhook_message
 
 async def main():
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
@@ -18,7 +18,7 @@ async def main():
 
     tool_util.set_logging(LOG_LEVEL)
 
-    await mattermost_send_message(f'start upbit-stream-broadcaster:{VERSION}')
+    await send_webhook_message(f'start upbit-stream-broadcaster:{VERSION}')
 
     try:
         # ZMQ 초기화 및 Publisher 설정

@@ -5,8 +5,6 @@ import logging
 from collections import deque
 from typing import List, Dict
 
-from myapp.common.tool_msg import mattermost_send_message
-
 class UpbitTradeWebSocket:
     def __init__(self, initial_symbols: List[str], zmq_publisher):
         self.uri = "wss://api.upbit.com/websocket/v1"

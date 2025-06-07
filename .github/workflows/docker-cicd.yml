@@ -76,7 +76,7 @@ jobs:
           echo "ZMQ_PORT=${{ vars.ZMQ_PORT }}" >> .env
           echo "TOP_TICKERS=${{ vars.TOP_TICKERS }}" >> .env
           echo "MINUTE_INTERVAL=${{ vars.MINUTE_INTERVAL }}" >> .env
-          echo "MATTERMOST_URL=${{ secrets.MATTERMOST_URL }}" >> .env
+          echo "WEBHOOK_URL=${{ secrets.WEBHOOK_URL }}" >> .env
           docker compose down --rmi all
           docker compose build --no-cache
           docker compose up -d
