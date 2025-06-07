@@ -148,7 +148,6 @@ class UpbitTradeWebSocket:
                 old_connection = self.active_connection
                 self.active_connection = new_connection
                 self.current_symbols = new_symbols
-                self.processed_ids.clear()
 
                 # 이전 연결이 있으면 안전하게 종료
                 if old_connection and old_connection.state == websockets.protocol.State.OPEN:
