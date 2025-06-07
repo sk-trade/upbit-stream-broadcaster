@@ -3,7 +3,7 @@ from pytz import timezone
 import logging
 import asyncio
 
-from myapp.common.tool_msg import MattermostHandler
+from myapp.common.tool_msg import WebhookHandler
 
 def get_kr_time():
     return datetime.now(timezone('Asia/Seoul'))
@@ -27,9 +27,9 @@ def set_logging(log_level):
     #file_handler.setFormatter(formatter)
     #logger.addHandler(file_handler)
 
-    mattermost_handler = MattermostHandler(level=logging.ERROR)
-    mattermost_handler.setFormatter(formatter)
-    logger.addHandler(mattermost_handler)
+    webhook_handler = WebhookHandler(level=logging.ERROR)
+    webhook_handler.setFormatter(formatter)
+    logger.addHandler(webhook_handler)
 
 
 async def wait_until_next_minute(interval: int = 10):
